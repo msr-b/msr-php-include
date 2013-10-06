@@ -1,5 +1,10 @@
 <?php
 
+/*
+	A log file class for php.
+	Created by Darren Liu (MSR.B, msr-b)
+*/
+
 	require_once __INCLUDE_DIR__.'/msr-log.php';
 	require_once __INCLUDE_DIR__.'/msr-file.php';
 
@@ -9,6 +14,11 @@
 	class LogFile extends File {
 
 		public function open($mode) {
+		/*
+			2 modes:
+				LOG_FILE_READ
+				LOG_FILE_WRITE
+		*/
 			if ($mode == LOG_FILE_READ || $mode == LOG_FILE_WRITE) {
 				return parent::open($mode);
 			}
@@ -16,8 +26,12 @@
 		}
 
 		public function write($var1, $var2 = NULL, $var4 = STATUS_DEFAULT, $var3 = SECURITY_DEFAULT) {
-			// write(Log $var1)
-			// write(string $message, string $type, SECURITY $security, STATUS $status)
+		/*
+			2 overloads:
+				write(string $message, string $type, SECURITY $security, STATUS $status)
+				write(Log $var1)
+					See msr-log.php
+		*/
 			if (is_object($var1) && get_class($var1) == 'Log') {
 				$log = $var1;
 				return parent::write($log."\n");
@@ -29,12 +43,23 @@
 		}
 
 		public function readLine() {
+		/*
+			Get a log.
+			return a log object
+		*/
 			$array = json_decode(parent::readLine(), true);
 			if (!empty($array)) {
 				return new Log($array['message'], $array['type'], $array['security'], $array['status'], $array['date'], $array['time']);
-			} else {
-				return null;
 			}
+			return null;
+		}
+
+		public function getLog() {
+		/*
+			Same as readLine().
+			return a log object
+		*/
+			return self::readLine();
 		}
 
 	}

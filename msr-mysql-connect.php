@@ -1,35 +1,53 @@
 <?php
 
-	require_once __INCLUDE_DIR__.'/msr-log-file-instance.php';
+/*
+	A package of MySQL database functions
+	Created by Darren Liu (MSR.B, msr-b)
+*/
 
 	class MySQLConnect {
 
-		public function __construct($servername, $username, $password) {
+		public function __construct($servername, $username, $password, $autoConnect = false) {
+			/*
+				string $servername  - essential
+				string $username    - essential
+				string $password    - essential
+				bool   $autoConnect - optional
+			*/
 			$this -> servername = $servername;
 			$this -> username = $username;
 			$this -> password = $password;
-			$this -> connect();
+			if ($autoConnect) {
+				$this -> connect();
+			}
 		}
 
 		public function connect() {
+		/*
+			Will not create multi-connection in one object.
+
+			When connected   : return true
+			When disconnected: return false
+		*/
 			if (!$this -> isConnected()) {
 				$this -> connect = mysql_connect($this -> servername, $this -> username, $this -> password, true); // new_link must be true
-				if (!$this -> connect) {
-					MSRLog('Cannot connected to '.$this -> servername.': '.mysql_error(), 'DATABASE', STATUS_ERROR);
-				}
 				$this -> database = NULL;
 			}
 			return $this -> isConnected();
 		}
 
 		public function disconnect() {
+		/*
+			When still connected: return false
+			When disconnected   : return true
+		*/
 			if ($this -> isConnected()) {
 				if (!mysql_close($this -> connect)) {
-					MSRLog('Cannot disconnected from '.$this -> servername.' normally, discarded the connection.'.mysql_error(), 'DATABASE', STATUS_WARNING);
+					return false;
 				}
 				$this -> connect = NULL;
+				$this -> database = NULL;
 			}
-			$this -> database = NULL;
 			return true;
 		}
 
@@ -38,14 +56,15 @@
 		}
 
 		public function selectDatabase($database) {
+		/*
+			When succeeded: return true
+			When failed   : return false
+		*/
 			if ($this -> isConnected()) {
 				if (mysql_select_db($database, $this -> connect)) {
 					$this -> database = $database;
 					return true;
 				}
-				$this -> database = NULL;
-				MSRLog('Cannot select database: '.$database.': '.mysql_error(), 'DATABASE', STATUS_ERROR);
-				return false;
 			}
 			$this -> database = NULL;
 			return false;
@@ -56,48 +75,79 @@
 		}
 
 		public function insert($table, $data) {
+		/*
+			string $table
+			array  $data = array(
+				'key' => 'value',
+				...
+			)
+
+			When succeeded: return true
+			When failed   : return false
+		*/
 			if ($this -> databaseIsSelected()) {
 				$encodedData = self::FieldsAndValuesEncode($data);
 				$query = "INSERT INTO $table ".
 				         '('.$encodedData['fields'].
 				         ') VALUES ('.$encodedData['values'].');';
 				$succeed = mysql_query($query, $this -> connect)? true : false;
-				MSRLog("> $query // database = ".$this -> database, 'DATABASE', $succeed? STATUS_SUCCESS : STATUS_ERROR);
 				return $succeed;
 			}
 			return false;
 		}
 
 		public function delete($table, $condition) {
+		/*
+			string $table
+			string $condition
+
+			When succeeded: return true
+			When failed   : return false
+		*/
 			if ($this -> databaseIsSelected()) {
 				$query = "DELETE FROM $table ".
 				         'WHERE '.$condition.';';
 				$succeed = mysql_query($query, $this -> connect)? true : false;
-				MSRLog("> $query // database = ".$this -> database, 'DATABASE', $succeed? STATUS_SUCCESS : STATUS_ERROR);
 				return $succeed;
 			}
 			return false;
 		}
 
 		public function update($table, $data, $condition) {
+		/*
+			string $table
+			array  $data = array(
+				'key' => 'value',
+				...
+			)
+			string $condition
+
+			When succeeded: return true
+			When failed   : return false
+		*/
 			if ($this -> databaseIsSelected()) {
 				$query = "UPDATE $table ".
 				         'SET '.self::DataEncode($data).' '.
 				         'WHERE '.$condition.';';
 				$succeed = mysql_query($query, $this -> connect)? true : false;
-				MSRLog("> $query // database = ".$this -> database, 'DATABASE', $succeed? STATUS_SUCCESS : STATUS_ERROR);
 				return $succeed;
 			}
 			return false;
 		}
 
-		public function select($table, $position, $condition) {
-			$results = NULL;	
+		public function select($table, $position, $condition) {		
+		/*
+			string       $table
+			string/array $position = 'value'/array('value', ...)
+			string       $condition
+			
+			return result array
+		*/
+			$results = NULL;
 			if ($this -> databaseIsSelected()) {
 				$query = 'SELECT '.self::PositionEncode($position).' '.
 				         "FROM $table ".
 				         'WHERE '.$condition.';';
-				MSRLog("> $query // database = ".$this -> database, 'DATABASE', STATUS_DEFAULT);
 				$results = mysql_query($query, $this -> connect);
 			}
 			$array = array();
@@ -110,7 +160,6 @@
 		}
 
 		public function query($query) {
-			MSRLog("> $query", 'DATABASE', STATUS_WARNING, SECURITY_WARNING);
 			if ($this -> isConnected()) {
 				return mysql_query($query, $this -> connect);
 			}

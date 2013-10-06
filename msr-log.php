@@ -1,13 +1,18 @@
 <?php
 
-	// {
-	// 	    "date": "yyyy-mm-dd",
-	// 	    "time": "hh:mm:ss",
-	// 	    "type": "string",
-	// 	  "status": "success|warning|error",
-	// 	"security": "safe|warning|danger",
-	// 	 "message": "string"
-	// }
+/*
+	Log object for php.
+	Created by Darren Liu (MSR.B, msr-b)
+
+	Format of a log in json: {
+		"date": "yyyy-mm-dd",
+		"time": "hh:mm:ss",
+		"type": "string",
+		"status": "success|warning|error",
+		"security": "safe|warning|danger",
+		"message": "string"
+	}
+*/
 
 	require_once __INCLUDE_DIR__.'/msr-status.php';
 	require_once __INCLUDE_DIR__.'/msr-security.php';
@@ -20,6 +25,14 @@
 		                            $security = SECURITY_DEFAULT,
 		                            $date     = NULL            ,
 									$time     = NULL            ) {
+			/*
+				string   $message  - essential
+				string   $type     - optional
+				STATUS   $status   - optional
+				SECURITY $security - optional
+				string   $date     - optional
+				string   $time     - optional
+			*/
 			if (!$date) {
 				$date = date('Y-m-d');
 			}
@@ -37,6 +50,9 @@
 		}
 
 		public function __toString() {
+			/*
+				Automatically convert Log to string in json format.
+			*/
 			$array = array("date"     => $this -> date    ,
 			               "time"     => $this -> time    ,
 			               "type"     => $this -> type    ,
@@ -47,6 +63,9 @@
 		}
 
 		public function toArray() {
+			/*
+				Return array format log.
+			*/
 			return json_decode($this);
 		}
 

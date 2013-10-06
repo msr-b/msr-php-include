@@ -1,5 +1,10 @@
 <?php
 
+/*
+	Status definitions.
+	Created by Darren Liu (MSR.B, msr-b)
+*/
+
 	define('STATUS_SUCCESS', 0             );
 	define('STATUS_WARNING', 1             );
 	define('STATUS_ERROR'  , 2             );

@@ -1,5 +1,10 @@
 <?php
 
+/*
+	Security level definitions.
+	Created by Darren Liu (MSR.B, msr-b)
+*/
+
 	define('SECURITY_SAFE'   , 0            );
 	define('SECURITY_WARNING', 1            );
 	define('SECURITY_DANGER' , 2            );

@@ -1,5 +1,10 @@
 <?php
 
+/*
+	Screen log functions.
+	Created by Darren Liu (MSR.B, msr-b)
+*/
+
 	require_once __INCLUDE_DIR__.'/msr-log.php';
 
 	define('SCREEN_LOG_ON' , true );
@@ -9,13 +14,19 @@
 	$ScreenLogCount = 0;
 
 	function SetScreenLogStatus($status) {
+	/*
+		Set screen log status.
+	*/
 		global $ScreenLogStatus;
 		if ($ScreenLogStatus == SCREEN_LOG_ON || $ScreenLogStatus == SCREEN_LOG_OFF) {
 			$ScreenLogStatus = $status;
 		}
 	}
 
-	function ScreenLogStatusIsOn() {
+	function GetScreenLogStatus() {
+	/*
+		Get screen log status.
+	*/
 		global $ScreenLogStatus;
 		return $ScreenLogStatus;
 	}
@@ -26,13 +37,17 @@
 	                   $var4 = SECURITY_DEFAULT,
 	                   $var5 = NULL            ,
 	                   $var6 = NULL            ) {
-		// ScreenLog(Log      $log     )
-		// ScreenLog(string   $message ,
-		//           string   $type    ,
-		//           STATUS   $status  ,
-		//           SECURITY $security,
-		//           string   $date    ,
-		//           string   $time    )
+	/*
+		2 overloads:
+			ScreenLog(Log      $log     )
+			ScreenLog(string   $message , - essential
+			          string   $type    , - optional
+			          STATUS   $status  , - optional
+			          SECURITY $security, - optional
+			          string   $date    , - optional
+			          string   $time    ) - optional
+		Echo table elements.
+	*/
 		global $ScreenLogStatus;
 		if ($ScreenLogStatus == SCREEN_LOG_OFF) {
 			return;
