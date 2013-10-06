@@ -32,7 +32,7 @@
 					      Write from header.
 				FILE_WRITEONLY | FILE_END
 					(ab)  Continue to write from the end.
-			2 modes unimplemented
+			2 modes unimplemented:
 				FILE_READWRITE | FILE_HEADER
 				FILE_READWRITE | FILE_END
 
