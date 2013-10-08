@@ -12,61 +12,74 @@
 
 	define('FILE_READONLY' , FILE_READ );
 	define('FILE_WRITEONLY', FILE_WRITE);
-	// define('FILE_READWRITE', FILE_READ | FILE_WRITE);
+	define('FILE_READWRITE', FILE_READ | FILE_WRITE);
 
 	class File {
 
 		public function __construct($fileURL) {
-			$this -> status  = NULL;
-			$this -> file    = NULL;
+			$this -> fileR   = NULL;
+			$this -> fileW   = NULL;
 			$this -> fileURL = $fileURL;
 		}
 
 		public function open($mode) {
 		/*
-			3 modes implemented:
+			5 modes:
 				FILE_READONLY | FILE_HEADER
-					(rb)  Read form header.
+					Read form header.
 				FILE_WRITEONLY | FILE_HEADER
-					(wb)  Create/Recreate the file.
-					      Write from header.
+					Create/Recreate the file.
+					Write from header.
 				FILE_WRITEONLY | FILE_END
-					(ab)  Continue to write from the end.
-			2 modes unimplemented:
+					Continue to write from the end.
 				FILE_READWRITE | FILE_HEADER
+					Create/Recreate the file.
+					Read/Write from header.
 				FILE_READWRITE | FILE_END
+					Read form header.
+					Continue to write from the end.
 
 			When succeeded: return true
 			When failed   : return false
 		*/
-			if (!$this -> status && is_integer($mode) && 0 < $mode && $mode < 16) {
+			if (!$this -> close()) {
+				return false;
+			}
+			if (is_integer($mode) && 0 < $mode && $mode < 16) {
 				switch ($mode) {
 					case FILE_READONLY | FILE_HEADER:
-						if ($this -> file = fopen($this -> fileURL, 'rb')) {
-							$this -> status = $mode;
+						if ($this -> fileR = fopen($this -> fileURL, 'rb')) {
 							return true;
 						}
 						break;
 					case FILE_WRITEONLY | FILE_HEADER:
-						if ($this -> file = fopen($this -> fileURL, 'wb')) {
-							$this -> status = $mode;
+						if ($this -> fileW = fopen($this -> fileURL, 'wb')) {
 							return true;
 						}
 						break;
 					case FILE_WRITEONLY | FILE_END:
-						if ($this -> file = fopen($this -> fileURL, 'ab')) {
-							$this -> status = $mode;
+						if ($this -> fileW = fopen($this -> fileURL, 'ab')) {
 							return true;
 						}
 						break;
 					case FILE_READWRITE | FILE_HEADER:
+						if (($this -> fileW = fopen($this -> fileURL, 'wb')) &&
+							($this -> fileR = fopen($this -> fileURL, 'rb'))   ) {
+							return true;
+						}
 						break;
 					case FILE_READWRITE | FILE_END:
+						if (($this -> fileW = fopen($this -> fileURL, 'ab')) && 
+							($this -> fileR = fopen($this -> fileURL, 'rb'))   ) {
+							return true;
+						}
 						break;
 					default:
 						break;
 				}
 			}
+			$this -> fileR  = NULL;
+			$this -> fileW  = NULL;
 			return false;
 		}
 
@@ -75,12 +88,15 @@
 			When succeeded: return true
 			When failed   : return false
 		*/
-			if ($this -> status && fclose($this -> file)) {
-				$this -> file   = NULL;
-				$this -> status = NULL;
-				return true;
+			if ($this -> fileR && !fclose($this -> fileR)) {
+				return false;
 			}
-			return false;
+			if ($this -> fileW && !fclose($this -> fileW)) {
+				return false;
+			}
+			$this -> fileR  = NULL;
+			$this -> fileW  = NULL;
+			return true;
 		}
 
 		public function write($str) {
@@ -88,10 +104,10 @@
 			When succeeded: return true
 			When failed   : return false
 		*/
-			if (($this -> status & FILE_WRITE) && flock($this -> file, LOCK_EX | LOCK_NB)) {
-				fwrite($this -> file, $str);
-				flock($this -> file, LOCK_UN);
-				return true;	
+			if ($this -> fileW && flock($this -> fileW, LOCK_EX | LOCK_NB)) {
+				fwrite($this -> fileW, $str);
+				flock($this -> fileW, LOCK_UN);
+				return true;
 			}
 			return false;
 		}
@@ -102,17 +118,17 @@
 			I'll implemented other functions in the future.
 
 			When succeeded: return $str
-			When failed   : return false
+			When failed   : return NULL
 		*/
-			if (flock($this -> file, LOCK_SH | LOCK_NB)) {
-				if (!feof($this -> file)) {
-					$str = fgets($this -> file);
-					flock($this -> file, LOCK_UN);
+			if ($this -> fileR && flock($this -> fileR, LOCK_SH | LOCK_NB)) {
+				if (!feof($this -> fileR)) {
+					$str = fgets($this -> fileR);
+					flock($this -> fileR, LOCK_UN);
 					return $str;
 				}
-				flock($this -> file, LOCK_UN);
+				flock($this -> fileR, LOCK_UN);
 			}
-			return false;
+			return NULL;
 		}
 		
 		public function __destruct() {
@@ -122,9 +138,9 @@
 			$this -> close();
 		}
 
-		protected $file;
+		protected $fileR;
+		protected $fileW;
 		protected $fileURL;
-		protected $status;
 
 	}
 
