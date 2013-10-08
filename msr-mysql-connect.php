@@ -167,11 +167,11 @@
 		}
 
 		public function error() {
-			return mysql_error();
+			return mysql_error($this -> connect);
 		}
 
 		public function errno() {
-			return mysql_errno();
+			return mysql_errno($this -> connect);
 		}
 
 		static private function DataEncode($data) {
