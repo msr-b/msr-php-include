@@ -8,18 +8,20 @@
 	require_once __INCLUDE_DIR__.'/msr-log.php';
 	require_once __INCLUDE_DIR__.'/msr-file.php';
 
-	define('LOG_FILE_READ' , FILE_READONLY  | FILE_HEADER);
-	define('LOG_FILE_WRITE', FILE_WRITEONLY | FILE_END   );
+	define('LOG_FILE_READ'     , FILE_READONLY  | FILE_HEADER);
+	define('LOG_FILE_WRITE'    , FILE_WRITEONLY | FILE_END   );
+	define('LOG_FILE_READWRITE', FILE_READWRITE | FILE_END   );
 
 	class LogFile extends File {
 
-		public function open($mode) {
+		public function open($mode = LOG_FILE_READWRITE) {
 		/*
-			2 modes:
+			3 modes:
 				LOG_FILE_READ
 				LOG_FILE_WRITE
+				LOG_FILE_READWRITE(default)
 		*/
-			if ($mode == LOG_FILE_READ || $mode == LOG_FILE_WRITE) {
+			if ($mode == LOG_FILE_READ || $mode == LOG_FILE_WRITE || $mode == LOG_FILE_READWRITE) {
 				return parent::open($mode);
 			}
 			return false;
@@ -60,6 +62,17 @@
 			return a log object
 		*/
 			return self::readLine();
+		}
+
+		public function getAllLogs() {
+		/*
+			return all logs in an array
+		*/
+			$result = array();
+			while ($log = self::readLine()) {
+				array_push($result, $log);
+			}
+			return $result;
 		}
 
 	}
