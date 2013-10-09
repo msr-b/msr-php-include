@@ -112,6 +112,14 @@
 			return false;
 		}
 
+		public function writeLine($str) {
+		/*
+			When succeeded: return true
+			When failed   : return false
+		*/
+			return self::write($str."\n");
+		}
+
 		public function readLine() {
 		/*
 			You can just read by lines now.
@@ -125,6 +133,24 @@
 					$str = fgets($this -> fileR);
 					flock($this -> fileR, LOCK_UN);
 					return $str;
+				}
+				flock($this -> fileR, LOCK_UN);
+			}
+			return NULL;
+		}
+
+		public function read() {
+		/*
+			Read a charactor.
+
+			When succeeded: return $c
+			When failed   : return NULL
+		*/
+			if ($this -> fileR && flock($this -> fileR, LOCK_SH | LOCK_NB)) {
+				if (!feof($this -> fileR)) {
+					$c = fgetc($this -> fileR);
+					flock($this -> fileR, LOCK_UN);
+					return $c;
 				}
 				flock($this -> fileR, LOCK_UN);
 			}

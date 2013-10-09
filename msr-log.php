@@ -25,14 +25,14 @@
 		                            $security = SECURITY_DEFAULT,
 		                            $date     = NULL            ,
 									$time     = NULL            ) {
-			/*
-				string   $message  - essential
-				string   $type     - optional
-				STATUS   $status   - optional
-				SECURITY $security - optional
-				string   $date     - optional
-				string   $time     - optional
-			*/
+		/*
+			string   $message  - essential
+			string   $type     - optional
+			STATUS   $status   - optional
+			SECURITY $security - optional
+			string   $date     - optional
+			string   $time     - optional
+		*/
 			if (!$date) {
 				$date = date('Y-m-d');
 			}
@@ -50,9 +50,9 @@
 		}
 
 		public function __toString() {
-			/*
-				Automatically convert Log to string in json format.
-			*/
+		/*
+			Automatically convert Log to string in json format.
+		*/
 			$array = array("date"     => $this -> date    ,
 			               "time"     => $this -> time    ,
 			               "type"     => $this -> type    ,
@@ -63,9 +63,9 @@
 		}
 
 		public function toArray() {
-			/*
-				Return array format log.
-			*/
+		/*
+			Return array format log.
+		*/
 			return json_decode($this);
 		}
 
